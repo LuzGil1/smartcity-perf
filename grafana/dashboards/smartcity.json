@@ -1,0 +1,80 @@
+{
+  "uid": "smartcity-perf",
+  "title": "Smart City - Rendimiento",
+  "schemaVersion": 39,
+  "refresh": "5s",
+  "time": { "from": "now-15m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "¿Cuántas lecturas por segundo acepta el sistema?",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "lecturas aceptadas/s",
+          "expr": "sum(rate(smartcity_solicitud_duracion_segundos_count{estado=\"201\"}[30s]))" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "¿Cómo se reparte el tráfico entre réplicas?",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{instance}}",
+          "expr": "sum by (instance) (rate(smartcity_solicitud_duracion_segundos_count[30s]))" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "p95 del sistema (ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "p95",
+          "expr": "avg(histogram_quantile(0.95, sum by (le, instance) (rate(smartcity_solicitud_duracion_segundos_bucket[30s])))) * 1000" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Latencia p50 y p99 del sistema (ms)",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+      "fieldConfig": { "defaults": { "unit": "ms" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "p50",
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(smartcity_solicitud_duracion_segundos_bucket[30s]))) * 1000" },
+        { "refId": "B", "legendFormat": "p99",
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(smartcity_solicitud_duracion_segundos_bucket[30s]))) * 1000" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "¿Qué porcentaje de lecturas falla en la API?",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "percent" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "% de fallas",
+          "expr": "100 * sum(rate(smartcity_solicitud_duracion_segundos_count{estado!=\"201\"}[30s])) / sum(rate(smartcity_solicitud_duracion_segundos_count[30s]))" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "Traefik: solicitudes por segundo según código HTTP",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 16 },
+      "fieldConfig": { "defaults": { "unit": "reqps" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "HTTP {{code}}",
+          "expr": "sum by (code) (rate(traefik_service_requests_total[30s]))" }
+      ]
+    },
+    {
+      "type": "timeseries",
+      "title": "¿Qué réplicas reporta Prometheus como activas? (1 = activa)",
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 24 },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{instance}}",
+          "expr": "up{job=\"api\"}" }
+      ]
+    }
+  ]
+}
